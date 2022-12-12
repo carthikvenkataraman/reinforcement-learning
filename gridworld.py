@@ -8,6 +8,7 @@ GRID_START = (1,2)
 GRID_TERMINAL = [(0,0), (3,3)]
 ACTION_SET = ["up", "right", "down", "left"]
 REWARD_PER_STEP = -1
+GAMMA = 1.0
 
 class Grid:
     def __init__(self):
@@ -45,6 +46,9 @@ class Grid:
     def getValue(self, state):
         return self.values[state]
 
+    def getActionValue(self, state, action):
+        return self.getReward(state) + GAMMA * self.getValue(self.getNextPosition(state, action))
+
     def getReward(self, state):
         if state in GRID_TERMINAL:
             reward = 0.0
@@ -52,18 +56,29 @@ class Grid:
             reward = REWARD_PER_STEP
         return reward
 
+    def getAction(self, state):
+        maxActionValue = -float("inf")
+        optimalAction = ACTION_SET[0]
+        for action in ACTION_SET:
+            actionValue = self.getActionValue(state, action)
+            if actionValue >= actionValue:
+                maxActionValue = actionValue
+                optimalAction = action
+        return optimalAction
+
     def evaluatePolicy(self):
-        probEachAction = 0.25
         newValues = self.values.copy()
         for row in range(NUM_ROWS):
             for col in range(NUM_COLS):
                 state = (row, col)
                 updatedValue = 0.0                
                 for action in ACTION_SET:
-                    updatedValue += self.getPolicy(action) * (self.getReward(state) + self.getValue(self.getNextPosition(state, action)))
+                    updatedValue += self.getPolicy(action) * self.getActionValue(state, action)
                 newValues[row, col] = updatedValue
         self.values = newValues
         print(self.values)
+
+    #def iterateValues(self):
 
 class Agent:
     def __init__(self):
