@@ -7,6 +7,7 @@ NUM_ROWS = 4
 GRID_START = (1,2)
 GRID_TERMINAL = [(0,0), (3,3)]
 ACTION_SET = ["up", "right", "down", "left"]
+REWARD_PER_STEP = -1
 
 class Grid:
     def __init__(self):
@@ -36,19 +37,30 @@ class Grid:
         self.current = nextPosition
         return nextPosition
 
-    def updateValues(self, rewardPerStep):
+    def getPolicy(self, action):
+        if action in ACTION_SET:
+            policy = 1/len(ACTION_SET)
+        return policy
+
+    def getValue(self, state):
+        return self.values[state]
+
+    def getReward(self, state):
+        if state in GRID_TERMINAL:
+            reward = 0.0
+        else:
+            reward = REWARD_PER_STEP
+        return reward
+
+    def evaluatePolicy(self):
         probEachAction = 0.25
         newValues = self.values.copy()
         for row in range(NUM_ROWS):
             for col in range(NUM_COLS):
+                state = (row, col)
                 updatedValue = 0.0                
-                if (row, col) in GRID_TERMINAL:
-                    reward = 0.0
-                else:
-                    reward = rewardPerStep
                 for action in ACTION_SET:
-                    destPosition = self.getNextPosition((row, col), action)
-                    updatedValue += probEachAction * (reward + self.values[destPosition])
+                    updatedValue += self.getPolicy(action) * (self.getReward(state) + self.getValue(self.getNextPosition(state, action)))
                 newValues[row, col] = updatedValue
         self.values = newValues
         print(self.values)
@@ -67,9 +79,8 @@ class Agent:
             print(p)
 
     def evaluatePolicy(self):
-        rewardPerStep = -1
         for _ in range(10):
-            self.grid.updateValues(rewardPerStep)
+            self.grid.evaluatePolicy()
 
 if __name__== "__main__":
     player = Agent()
